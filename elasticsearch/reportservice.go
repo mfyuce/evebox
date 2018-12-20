@@ -50,7 +50,7 @@ func (s *ReportService) ReportDnsRequestRrnames(options core.ReportOptions) (int
 
 	size := int64(10)
 
-	query := NewEventQuery()
+	query := NewEventQuery(s.es)
 
 	query.AddFilter(TermQuery("event_type", "dns"))
 	query.AddFilter(TermQuery("dns.type", "query"))
@@ -97,7 +97,7 @@ func (s *ReportService) ReportDnsRequestRrnames(options core.ReportOptions) (int
 
 func (s *ReportService) ReportHistogram(interval string, options core.ReportOptions) (interface{}, error) {
 
-	query := NewEventQuery()
+	query := NewEventQuery(s.es)
 
 	if options.AddressFilter != "" {
 		query.ShouldHaveIp(options.AddressFilter, s.es.GetKeyword())
@@ -167,7 +167,7 @@ func (s *ReportService) ReportAggs(agg string, options core.ReportOptions) (inte
 
 	size := int64(10)
 
-	query := NewEventQuery()
+	query := NewEventQuery(s.es)
 	query.SetSize(0)
 
 	// Event type...

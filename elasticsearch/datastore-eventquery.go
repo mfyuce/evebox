@@ -30,6 +30,7 @@ import (
 	"fmt"
 	"github.com/jasonish/evebox/core"
 	"github.com/jasonish/evebox/log"
+	"github.com/jasonish/evebox/util"
 )
 
 const DEFAULT_SORT_BY = "@timestamp"
@@ -38,9 +39,9 @@ const DEFAULT_SORT_ORDER = "desc"
 const DEFAULT_SIZE = 500
 
 func (s *DataStore) EventQuery(options core.EventQueryOptions) (interface{}, error) {
-	query := NewEventQuery()
+	query := NewEventQuery(s.es)
 
-	query.MustNot(TermQuery("event_type", "stats"))
+	query.MustNot(TermQuery(s.es.MapFieldName("event_type"), "stats"))
 
 	sortBy := options.SortBy
 	if sortBy == "" {
@@ -79,8 +80,10 @@ func (s *DataStore) EventQuery(options core.EventQueryOptions) (interface{}, err
 	}
 
 	if options.EventType != "" {
-		query.AddFilter(TermQuery("event_type", options.EventType))
+		query.AddFilter(TermQuery(s.es.MapFieldName("event_type"), options.EventType))
 	}
+
+	log.Printf("%s", util.ToJson(query))
 
 	response, err := s.es.Search(query)
 	if err != nil {
@@ -96,7 +99,22 @@ func (s *DataStore) EventQuery(options core.EventQueryOptions) (interface{}, err
 		log.Warning("Search error: %v", err)
 		return nil, err
 	}
-	hits := response.Hits.Hits
+
+	hits := []interface{}{}
+
+	for _, hit := range response.Hits.Hits {
+		source := util.JsonMap(hit).GetMap("_source")
+		inner := source.GetMap("suricata").GetMap("eve")
+		if inner != nil {
+			for key := range inner {
+				source[key] = inner[key]
+			}
+			delete(source, "suricata")
+		}
+		hits = append(hits, hit)
+	}
+
+	//hits := response.Hits.Hits
 
 	return map[string]interface{}{
 		"data": hits,

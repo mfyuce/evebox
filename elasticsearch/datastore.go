@@ -58,7 +58,7 @@ func (s *DataStore) asKeyword(keyword string) string {
 func (d *DataStore) FindFlow(flowId uint64, proto string, timestamp string,
 	srcIp string, destIp string) (interface{}, error) {
 
-	query := NewEventQuery()
+	query := NewEventQuery(d.es)
 
 	query.EventType("flow")
 	query.AddFilter(TermQuery("flow_id", flowId))
@@ -91,7 +91,7 @@ func (s *DataStore) FindNetflow(options core.EventQueryOptions, sortBy string,
 		order = "desc"
 	}
 
-	query := NewEventQuery()
+	query := NewEventQuery(s.es)
 	query.AddFilter(TermQuery("event_type", "netflow"))
 
 	if options.TimeRange != "" {

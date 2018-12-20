@@ -33,7 +33,7 @@ import (
 )
 
 func (s *DataStore) FlowHistogram(options core.FlowHistogramOptions) (interface{}, error) {
-	query := NewEventQuery()
+	query := NewEventQuery(s.es)
 	query.EventType("flow")
 
 	if options.QueryString != "" {

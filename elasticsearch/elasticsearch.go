@@ -45,6 +45,8 @@ import (
 
 const LOG_REQUEST_RESPONSE = false
 
+type FieldMap map[string]string
+
 type Config struct {
 	BaseURL          string
 	DisableCertCheck bool
@@ -78,6 +80,8 @@ type ElasticSearch struct {
 	useIpDatatype bool
 
 	httpClient *httpclient.HttpClient
+
+	fieldMap FieldMap
 }
 
 func New(config Config) *ElasticSearch {
@@ -96,7 +100,16 @@ func New(config Config) *ElasticSearch {
 
 	es.setEventIndex(config.Index)
 
+	es.fieldMap = EcsFieldMap
+
 	return es
+}
+
+func (es *ElasticSearch) MapFieldName(name string) string {
+	if fieldName, ok := es.fieldMap[name]; ok {
+		return fieldName
+	}
+	return name
 }
 
 func (es *ElasticSearch) setEventIndex(index string) {

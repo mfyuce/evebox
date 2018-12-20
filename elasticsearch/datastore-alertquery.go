@@ -111,7 +111,7 @@ func (s *DataStore) get3TupleAggs() map[string]interface{} {
 
 func (s *DataStore) AlertQuery(options core.AlertQueryOptions) ([]core.AlertGroup, error) {
 
-	query := NewEventQuery()
+	query := NewEventQuery(s.es)
 
 	// Limit to alerts.
 	query.AddFilter(TermQuery("event_type", "alert"))

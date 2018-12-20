@@ -62,9 +62,9 @@ type EventQuery struct {
 	Aggs map[string]interface{} `json:"aggs,omitempty"`
 }
 
-func NewEventQuery() EventQuery {
+func NewEventQuery(es *ElasticSearch) EventQuery {
 	query := EventQuery{}
-	query.AddFilter(ExistsQuery("event_type"))
+	query.AddFilter(ExistsQuery(es.MapFieldName("event_type")))
 
 	// This is the default sort order. A SortBy() call will replace this.
 	query.Sort = []interface{}{
