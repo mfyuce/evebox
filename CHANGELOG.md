@@ -1,6 +1,6 @@
 # Change Log
 
-## unreleased
+## 0.10.2 - 2019-01-30
 
 ### Fixed
 - If EveBox is installing the Elastic Search template, re-configure
