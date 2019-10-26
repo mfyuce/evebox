@@ -58,6 +58,12 @@ release_windows() {
     docker_run \
 	"make install-deps && GOOS=windows CC=x86_64-w64-mingw32-gcc make dist"
 }
+release-arm() {
+    DOCKERFILE="./docker/builder/Dockerfile"
+    docker_build
+    docker_run \
+	"make install-deps && GOARCH=arm64 GOARM=6 CC=aarch64-linux-gnu-gcc make dist || exit 1"
+}
 
 release_macos() {
     IMAGE="evebox/builder:macos"
@@ -75,6 +81,10 @@ case "$1" in
 
     release-windows)
 	release_windows
+	;;
+
+    release-arm)
+	release_arm
 	;;
 
     release-macos)
@@ -108,6 +118,7 @@ Commands:
     release            Build x86_64 Linux release - zip/deb/rpm.
     release-windows    Build x86_64 Windows release zip.
     release-macos      Build x86_64 MacOS release zip.
+    release-arm        Build 64 ARM release zip.
 EOF
 	fi
 	;;

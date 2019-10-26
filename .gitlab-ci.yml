@@ -18,6 +18,7 @@ release:
 
     ./docker.sh release
     ./docker.sh release-windows
+    ./docker.sh release-arm
 
     docker pull ${CONTAINER_NAME}:macos || true
     export CACHE_FROM="--cache-from ${CONTAINER_NAME}:macos"
