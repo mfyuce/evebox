@@ -18,7 +18,7 @@ matrix:
         packages:
           - rpm
           - gcc-mingw-w64
-          - aarch64-linux-gnu-gcc
+          - gcc-aarch64-linux-gnu
     language: go
     go: "1.12"
   - os: osx
