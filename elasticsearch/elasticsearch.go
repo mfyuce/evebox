@@ -173,7 +173,6 @@ func (es *ElasticSearch) GetUseIpDatatype() bool {
 }
 
 func (es *ElasticSearch) ConfigureIndex() error {
-
 	index := es.EventIndexPrefix
 
 	// Use a template name matching the index prefix unless explicitly set.
@@ -215,7 +214,7 @@ func (es *ElasticSearch) ConfigureIndex() error {
 	}
 
 	// Determine keyword.
-	if es.config.KeywordSuffix == "" && !es.config.NoKeywordSuffix {
+	if !es.config.NoKeywordSuffix {
 		keywordFound := false
 		dynamicTemplates := template.GetMap(index).
 			GetMap("mappings").
@@ -235,13 +234,30 @@ func (es *ElasticSearch) ConfigureIndex() error {
 			}
 		}
 
+		if !keywordFound {
+			dynamicTemplates := template.GetMap(index).
+				GetMap("mappings").
+				GetMapList("dynamic_templates")
+			for _, entry := range dynamicTemplates {
+				if entry["string_fields"] != nil {
+					mappingType := entry.GetMap("string_fields").
+						GetMap("mapping").
+						GetMap("fields").
+						GetMap("keyword").
+						Get("type")
+					if mappingType == "keyword" {
+						es.config.KeywordSuffix = "keyword"
+						keywordFound = true
+					}
+				}
+			}
+		}
+
 		if keywordFound {
 			log.Info("Found Elastic Search keyword suffix to be: %s",
 				es.config.KeywordSuffix)
 		} else {
-			log.Warning("Failed to determine Elastic Search keyword suffix, will use 'raw'.")
-			es.config.KeywordSuffix = "raw"
-			keywordFound = true
+			log.Warning("Failed to determine Elastic Search keyword suffix, things may not work right.")
 		}
 	}
 
@@ -270,7 +286,10 @@ func (es *ElasticSearch) Search(query interface{}) (*Response, error) {
 		es.ConfigureIndex()
 	}
 
-	path := fmt.Sprintf("%s/_search", es.EventSearchIndex)
+	path := fmt.Sprintf("%s/_search?", es.EventSearchIndex)
+	if es.MajorVersion == 7 {
+		path = fmt.Sprintf("%srest_total_hits_as_int=true&", path)
+	}
 
 	if LOG_REQUEST_RESPONSE {
 		log.Debug("REQUEST: POST %s: %s", path, util.ToJson(query))

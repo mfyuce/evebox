@@ -24,13 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import {
-    Component,
-    EventEmitter,
-    OnDestroy,
-    OnInit,
-    Output
-} from "@angular/core";
+import {Component, OnDestroy, OnInit} from "@angular/core";
 import {Location} from "@angular/common";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AlertGroup, ElasticSearchService} from "../elasticsearch.service";
@@ -43,54 +37,6 @@ import {loadingAnimation} from "../animations";
 import {ToastrService} from "../toastr.service";
 import {FEATURE_COMMENTS} from "../app.service";
 import {ConfigService} from "../config.service";
-
-@Component({
-    selector: "evebox-comment-input",
-    template: `
-      <div>
-        <div class="card">
-          <div class="card-header">
-            <b>New Comment...</b>
-          </div>
-          <div style="margin-left: 5px; margin-right: 5px; margin-top: 5px;">
-          <textarea rows="3" [(ngModel)]="comment"
-                    style="width: 100%; resize: vertical; border: solid 1px #cccccc;"></textarea>
-          </div>
-          <div style="margin: 0px 5px 5px 5px;">
-            <div class="row">
-              <div class="col-md-6">
-                <button type="button" class="btn btn-secondary btn-block"
-                        (click)="close()">Close
-                </button>
-              </div>
-              <div class="col-md-6">
-                <button type="button" [disabled]="comment == ''"
-                        class="btn btn-primary btn-block"
-                        (click)="submitComment()">Comment
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `,
-})
-export class EveboxCommentInput {
-
-    @Output("on-close") public onClose = new EventEmitter<any>();
-    @Output("on-submit") public onSubmit = new EventEmitter<any>();
-
-    public comment: string = "";
-
-    close() {
-        this.onClose.emit();
-    }
-
-    submitComment() {
-        this.onSubmit.emit(this.comment);
-    }
-
-}
 
 /**
  * Component to show a single event.
@@ -109,6 +55,11 @@ export class EventComponent implements OnInit, OnDestroy {
     eventId: string;
     alertGroup: AlertGroup;
     public event: any = {};
+
+    // An object containing normalized fields from the event when they may
+    // differ in the real event based on input configuration.
+    normalized: any = {};
+
     params: any = {};
     flows: any[] = [];
 
@@ -138,6 +89,7 @@ export class EventComponent implements OnInit, OnDestroy {
         this.event = {};
         this.params = {};
         this.flows = [];
+        this.normalized = {};
     }
 
     setup() {
@@ -378,6 +330,21 @@ export class EventComponent implements OnInit, OnDestroy {
                     if (event._source.alert) {
                         if (!event._source.alert.rule && event._source.rule) {
                             event._source.alert.rule = event._source.rule;
+                        }
+                    }
+
+                    // Normalize the sensor name.
+                    // - Suricata put the name in the "host" field.
+                    // - Filebeat will overwrite the "host" field with its own "host" object,
+                    //       losing the Suricata sensor name. So use the Filebeat provided
+                    //       hostname instead.
+                    if (event._source.host) {
+                        if (event._source.host.name) {
+                            this.normalized.sensor_name = event._source.host.name;
+                            this.normalized.sensor_name_key = "host.name";
+                        } else if (typeof (event._source.host) === "string") {
+                            this.normalized.sensor_name = event._source.host;
+                            this.normalized.sensor_name_key = "host";
                         }
                     }
 

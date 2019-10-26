@@ -57,8 +57,8 @@ after a restart. For many use cases this can be used instead of
 ::
 
    ./evebox esimport --elasticsearch http://10.16.1.10:9200 --index logstash \
-       --bookmark --bookmark-filename /var/tmp/eve.json.bookmark \
-       /var/log/suricata/eve.json -v
+       --bookmark --bookmark-filename /var/tmp/eve.json.bookmark -v \
+       /var/log/suricata/eve.json
 
 If using *esimport* in this way you may want to create a configuration
 named **esimport.yaml** like:
@@ -122,6 +122,33 @@ Command Line Options
    using EveBox to add events to Elasticsearch. It is off by default
    to better work with Elasticsearch instances where the template is
    already managed by Logstash of Filebeat.
+
+.. option:: --bookmark
+
+   Enable bookmarking of the input files. With bookmarking, the last
+   read location will be remember over restarts of `esimport`.
+
+.. option:: --bookmark-dir DIRECTORY
+
+   Use the provided directory for bookmarks. Bookmark files will take
+   the filename of the md5 of the input filename suffixed with
+   `.bookmark`.
+
+   This option is required if `--bookmark` is used with multiple
+   inputs but may also be used with a single input.
+
+.. option:: --bookmark-filename FILENAME
+
+   Use the provided filename as the bookmark file. This option is only
+   valid if a single input file is used.
+
+.. option:: --index INDEX
+
+   The *Elastic Search* index prefix to add events to. The default is
+   `logstash` to be compatible with *Logstash*.
+
+   .. note:: Previous version of `esimport` used a default index of
+             `evebox`.
 
 Configuration File
 ------------------

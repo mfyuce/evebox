@@ -5,7 +5,7 @@
 
 # Version info.
 VERSION_SUFFIX	:=	dev
-VERSION		:=	0.10.0
+VERSION		:=	0.11.0
 BUILD_REV	:=	$(shell git rev-parse --short HEAD)
 BUILD_DATE	?=	$(shell git log --pretty=format:%ct -1)
 export BUILD_DATE
@@ -40,10 +40,9 @@ GOPATH ?=	$(HOME)/go
 all: public evebox
 
 install-deps:
-	$(MAKE) -C webapp $@
 	go get github.com/cespare/reflex
 	go get github.com/gobuffalo/packr/packr
-	go mod download
+	cd webapp && $(MAKE) install-deps
 
 update-deps:
 	go get -u github.com/cespare/reflex

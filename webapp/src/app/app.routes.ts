@@ -25,11 +25,11 @@
  */
 
 import {CanActivate, RouterModule, Routes} from "@angular/router";
-import {EventsComponent} from "./events.component";
+import {EventsComponent} from "./events/events.component";
 import {EventComponent} from "./event/event.component";
 import {AlertsComponent} from "./alerts.component";
 import {AlertReportComponent} from "./reports/alerts-report.component";
-import {DNSReportComponent} from "./reports/dns-report.component";
+import {DNSReportComponent} from "./reports/dns-report/dns-report.component";
 import {FlowReportComponent} from "./reports/flow-report.component";
 import {NetflowReportComponent} from "./reports/netflow-report.component";
 import {Injectable, ModuleWithProviders} from "@angular/core";
@@ -40,6 +40,7 @@ import {ConfigService} from "./config.service";
 import {ApiService} from "app/api.service";
 import {SettingsComponent} from "./settings/settings.component";
 import {DebugComponent} from "./debug/debug.component";
+import {Alert} from "selenium-webdriver";
 
 declare var window: any;
 
@@ -58,6 +59,13 @@ export class AuthGuard implements CanActivate {
 }
 
 @Injectable()
+export class NeverActivate implements CanActivate {
+    canActivate() {
+        return false;
+    }
+}
+
+@Injectable()
 export class ConfigResolver implements CanActivate {
 
     constructor(private api: ApiService,
@@ -69,7 +77,7 @@ export class ConfigResolver implements CanActivate {
             return Promise.resolve(true);
         }
 
-        return this.api.get("/api/1/config")
+        return this.api.get("api/1/config")
                 .then((config) => {
                     console.log(config);
                     this.configService.setConfig(config);
@@ -133,6 +141,13 @@ const routes: Routes = [
             {
                 path: "reports",
                 children: [
+                    // The "reports/" route. Never allow to activate as there
+                    // is nothing here.
+                    {
+                        path: "",
+                        canActivate: [NeverActivate],
+                        component: AlertReportComponent,
+                    },
                     {
                         path: "alerts",
                         component: AlertReportComponent,
@@ -155,11 +170,6 @@ const routes: Routes = [
                     },
                 ]
             },
-            // {path: "reports/alerts", component: AlertReportComponent},
-            // {path: "reports/dns", component: DNSReportComponent},
-            // {path: "reports/flow", component: FlowReportComponent},
-            // {path: "reports/netflow", component: NetflowReportComponent},
-            // {path: "reports/ssh", component: SshReportComponent},
             {
                 path: "reports/ip",
                 component: IpReportComponent,

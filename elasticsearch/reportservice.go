@@ -234,9 +234,8 @@ func (s *ReportService) ReportAggs(agg string, options core.ReportOptions) (inte
 	if aggType == "keyword" {
 		query.Aggs[agg] = map[string]interface{}{
 			"terms": map[string]interface{}{
-				"field":         s.es.FormatKeyword(agg),
-				"size":          size,
-				"min_doc_count": 0,
+				"field": s.es.FormatKeyword(agg),
+				"size":  size,
 			},
 		}
 		query.Aggs["missing"] = map[string]interface{}{
@@ -247,9 +246,8 @@ func (s *ReportService) ReportAggs(agg string, options core.ReportOptions) (inte
 	} else {
 		query.Aggs[agg] = map[string]interface{}{
 			"terms": map[string]interface{}{
-				"field":         agg,
-				"size":          size,
-				"min_doc_count": 0,
+				"field": agg,
+				"size":  size,
 			},
 		}
 		query.Aggs["missing"] = map[string]interface{}{

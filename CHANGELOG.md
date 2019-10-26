@@ -1,12 +1,71 @@
 # Change Log
 
 ## unreleased
+
+**Enhancements**
+- Handle Filebeat overriding the "host" field with its own object by
+  normalizing the sensor name before rendering. If Filebeat is used,
+  the Suricata provided sensor name is lost, so use the Filebeat
+  provided host.name
+  instead. https://github.com/jasonish/evebox/issues/100
+- Allow `esimport` to read from multiple eve files. If bookmarking is
+  used, `--bookmark-dir` must be used instead of
+  `--bookmark-filename`. https://github.com/jasonish/evebox/issues/98
+- Support Elastic
+  Search 7. https://github.com/jasonish/evebox/issues/112
+
+**Breaking Changes**
+- `esimport` now uses a default index of `logstash` instead of
+  `evebox` to match common usage.
+- The `evebox` application now requires a command name. It will not
+  fallback to the server command anymore.
+
+[Full Changelog](https://github.com/jasonish/evebox/compare/0.10.2..master)
+
+## 0.10.2 - 2019-01-30
+
+### Fixed
+- If EveBox is installing the Elastic Search template, re-configure
+  after installation to figure out the keyword suffix instead of
+  requiring EveBox to be
+  restarted. https://github.com/jasonish/evebox/issues/85
+- Update the Brace Javascript dependency. Fixes issue loading event
+  view. https://github.com/jasonish/evebox/issues/91
+- In agg reports use default min_doc_count of 1 instead of 0. Prevents
+  values from showing in the report that have 0 hits, when the number
+  of results in less than the number of results requested. Affects:
+  Elastic Search. https://github.com/jasonish/evebox/issues/99
+- Remove top rrdata from DNS report as its not really valid with DNS
+  v2 alerts. Best to remove it until an alternate metric can be used
+  to report on DNS responses. Closes
+  https://github.com/jasonish/evebox/issues/72.
+- Fixed pager button on "Events"
+  view. https://github.com/jasonish/evebox/issues/92
+- Fix issue with drop down event type selector on events view page
+  where choosing an event type was taking users back to the index.
+- Fix pcap downloads when authentication is on. This requires setting
+  a cookie as this isn't an XHR/REST style request.
+  https://github.com/jasonish/evebox/issues/90
+- Fix doc on adding a
+  user. https://github.com/jasonish/evebox/issues/89
+
+[Full Changelog](https://github.com/jasonish/evebox/compare/0.10.1..0.10.2)
+
+## 0.10.1 - 2018-12-20
+- Fix issue when behind a path on a reverse
+  proxy. https://github.com/jasonish/evebox/issues/84
+
+[Full Changelog](https://github.com/jasonish/evebox/compare/0.10.0..0.10.1)
+
+## 0.10.0 - 2018-12-19
 - Update to Angular 7.
 - Migrate to Go 1.11 module support. This requires Go 1.11, but no
   longer requires building in the GOPATH.
 - Event rendering fixes.
 - Allow Elastic Search index prefix and template name to be
   different. https://github.com/jasonish/evebox/issues/83
+
+[Full Changelog](https://github.com/jasonish/evebox/compare/0.9.1...0.10.0)
 
 ## 0.9.1 - 2018-05-29
 - Better Elastic Search version support, including Elastic Search 6.

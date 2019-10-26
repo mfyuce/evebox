@@ -26,107 +26,18 @@
 
 import {Component, OnDestroy, OnInit} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
-import {ElasticSearchService} from "./elasticsearch.service";
-import {MousetrapService} from "./mousetrap.service";
-import {AppService} from "./app.service";
-import {ToastrService} from "./toastr.service";
-import {EveboxSubscriptionService} from "./subscription.service";
-import {loadingAnimation} from "./animations";
-import {ApiService} from "./api.service";
+import {ElasticSearchService} from "../elasticsearch.service";
+import {MousetrapService} from "../mousetrap.service";
+import {AppService} from "../app.service";
+import {ToastrService} from "../toastr.service";
+import {EveboxSubscriptionService} from "../subscription.service";
+import {loadingAnimation} from "../animations";
+import {ApiService} from "../api.service";
 import {finalize} from "rxjs/operators";
-import {EVENT_TYPES} from './shared/eventtypes';
+import {EVENT_TYPES} from '../shared/eventtypes';
 
 @Component({
-    template: `
-      <loading-spinner [loading]="loading"></loading-spinner>
-
-      <div class="content"
-           [@loadingState]="loading ? 'true' : 'false'">
-
-        <br/>
-
-        <div class="row">
-          <div class="col-md">
-            <form name="filterInputForm" (submit)="submitFilter()">
-              <div class="input-group">
-                <input id="filter-input" type="text" class="form-control"
-                       placeholder="Filter..." [(ngModel)]="queryString"
-                       name="queryString"/>
-                <div class="input-group-append">
-                  <button type="submit" class="btn btn-secondary">Search
-                  </button>
-                  <button type="button" class="btn btn-secondary"
-                          (click)="clearFilter()">Clear
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <br/>
-
-        <div class="row">
-          <div class="col-md">
-
-            <button type="button" class="btn btn-secondary mr-2" (click)="refresh()">
-              Refresh
-            </button>
-
-            <div class="btn-group dropdown">
-              <button type="button"
-                      class="btn btn-secondary dropdown-toggle"
-                      data-toggle="dropdown"
-                      aria-haspopup="true"
-                      aria-expanded="false">
-                Event Type: {{eventTypeFilter.name}}
-              </button>
-              <div class="dropdown-menu">
-                <a *ngFor="let type of eventTypes"
-                   class="dropdown-item" href="javascript:void(0);"
-                   (click)="setEventTypeFilter(type)">{{type.name}}</a>
-              </div>
-            </div>
-
-            <div *ngIf="hasEvents()" class="float-right">
-              <button type="button" class="btn btn-secondary mr-2"
-                      (click)="gotoNewest()">
-                Newest
-              </button>
-              <button type="button" class="btn btn-secondary mr-2"
-                      (click)="gotoNewer()">
-                Newer
-              </button>
-              <button type="button" class="btn btn-secondary mr-2"
-                      (click)="gotoOlder()">
-                Older
-              </button>
-              <button type="button" class="btn btn-secondary"
-                      (click)="gotoOldest()">
-                Oldest
-              </button>
-            </div>
-
-          </div>
-        </div>
-
-        <div *ngIf="error">
-          <br/>
-          <div class="alert alert-danger text-center">{{error}}</div>
-        </div>
-
-        <div *ngIf="!error && !loading && !hasEvents()"
-             style="text-align: center;">
-          <hr/>
-          No events found.
-          <hr/>
-        </div>
-
-        <br/>
-
-        <evebox-event-table
-            [rows]="model.events"></evebox-event-table>
-      </div>`,
+    templateUrl: "./events.component.html",
     animations: [
         loadingAnimation,
     ]
@@ -168,8 +79,8 @@ export class EventsComponent implements OnInit, OnDestroy {
             let qp: any = this.route.snapshot.queryParams;
 
             this.queryString = params.q || qp.q || "";
-            this.timeStart = params.minTs || qp.minTs;
-            this.timeEnd = params.maxTs || qp.maxTs;
+            this.timeStart = params.timeStart || qp.timeStart;
+            this.timeEnd = params.timeEnd || qp.timeEnd;
 
             if (params.eventType) {
                 this.setEventTypeFilterByEventType(params.eventType);
@@ -188,13 +99,18 @@ export class EventsComponent implements OnInit, OnDestroy {
         this.mousetrap.bind(this, "r", () => this.refresh());
     }
 
-    setEventTypeFilterByEventType(eventType:string) {
+    setEventTypeFilterByEventType(eventType: string) {
         for (let et of this.eventTypes) {
             if (et.eventType == eventType) {
                 this.eventTypeFilter = et;
                 break;
             }
         }
+    }
+
+    setEventTypeFilter(type: any) {
+        this.eventTypeFilter = type;
+        this.appService.updateParams(this.route, {eventType: this.eventTypeFilter.eventType});
     }
 
     ngOnDestroy() {
@@ -218,11 +134,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         this.submitFilter();
     }
 
-    setEventTypeFilter(type: any) {
-        this.eventTypeFilter = type;
-        this.appService.updateParams(this.route, {eventType: this.eventTypeFilter.eventType});
-    }
-
     gotoNewest() {
         this.appService.updateParams(this.route, {
             timeStart: undefined,
@@ -240,6 +151,7 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
 
     gotoOlder() {
+        console.log(`gotoOlder: timeEnd=${this.model.oldestTimestamp}`);
         this.appService.updateParams(this.route, {
             timeEnd: this.model.oldestTimestamp,
             timeStart: undefined,
@@ -258,8 +170,7 @@ export class EventsComponent implements OnInit, OnDestroy {
     hasEvents(): boolean {
         try {
             return this.model.events.length > 0;
-        }
-        catch (err) {
+        } catch (err) {
             return false;
         }
     }
@@ -288,6 +199,9 @@ export class EventsComponent implements OnInit, OnDestroy {
             if (events.length > 0) {
                 this.model.newestTimestamp = events[0]._source["@timestamp"];
                 this.model.oldestTimestamp = events[events.length - 1]._source["@timestamp"];
+
+                console.log(`Newest event: ${this.model.newestTimestamp}`);
+                console.log(`Oldest event: ${this.model.oldestTimestamp}`);
             }
             this.model.events = events;
         }, (error) => {
