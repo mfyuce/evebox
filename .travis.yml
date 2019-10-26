@@ -18,6 +18,7 @@ matrix:
         packages:
           - rpm
           - gcc-mingw-w64
+          - aarch64-linux-gnu-gcc
     language: go
     go: "1.11"
   - os: osx
@@ -34,9 +35,10 @@ script:
   make install-deps || exit 1
   make dist || exit 1
 
-  # On Linux, make a Windows release as well.
+  # On Linux, make a Windows/ARM64 release as well.
   if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
     GOOS=windows CC=x86_64-w64-mingw32-gcc make dist || exit 1
+    env GOARCH=arm64 GOARM=6 CC=aarch64-linux-gnu-gcc make dist || exit 1
   fi
 
   # Copy just what we want to deploy to S3 into a deploy directory, as
