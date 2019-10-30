@@ -7,5 +7,7 @@
 			"path": "webapp"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"bashIde.explainshellEndpoint": "http://localhost:5000"
+	}
 }

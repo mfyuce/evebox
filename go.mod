@@ -2,6 +2,7 @@ module github.com/jasonish/evebox
 
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
+	github.com/cespare/reflex v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gobuffalo/packr v1.30.1
 	github.com/google/go-cmp v0.3.1 // indirect
@@ -9,6 +10,8 @@ require (
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/handlers v1.4.0
 	github.com/gorilla/mux v1.6.2
+	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
+	github.com/kr/pty v1.1.8 // indirect
 	github.com/lib/pq v0.0.0-20181016162627-9eb73efc1fcc
 	github.com/mattn/go-isatty v0.0.4
 	github.com/mattn/go-sqlite3 v1.10.0
@@ -34,3 +37,5 @@ require (
 )
 
 replace github.com/gobuffalo/packr => github.com/gobuffalo/packr v1.13.0
+
+go 1.13

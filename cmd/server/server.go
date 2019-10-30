@@ -44,7 +44,7 @@ import (
 	"github.com/jasonish/evebox/server"
 	"github.com/jasonish/evebox/sqlite"
 	"github.com/jasonish/evebox/sqlite/configdb"
-	"github.com/jasonish/evebox/useragent"
+	// "github.com/jasonish/evebox/useragent"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"runtime"
@@ -479,7 +479,7 @@ func initInternalEveReader(appContext *appcontext.AppContext, inputStart bool) {
 
 	eveFileProcessor.AddFilter(&eve.TagsFilter{})
 	eveFileProcessor.AddFilter(eve.NewGeoipFilter(appContext.GeoIpService))
-	eveFileProcessor.AddFilter(&useragent.EveUserAgentFilter{})
+	// eveFileProcessor.AddFilter(&useragent.EveUserAgentFilter{})
 
 	inputRules := viper.GetStringSlice("input.rules")
 	if inputRules != nil {

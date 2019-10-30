@@ -7,7 +7,7 @@ IMAGE="evebox/builder:latest"
 docker_build() {
     docker build ${CACHE_FROM} --rm \
 	   -t ${IMAGE} \
-	   -f ${DOCKERFILE} .
+	   -f ${DOCKERFILE} ./docker/builder_ubuntu/
 }
 
 docker_run() {
@@ -47,24 +47,41 @@ docker_run() {
 }
 
 release() {
-    DOCKERFILE="./docker/builder/Dockerfile"
+    DOCKERFILE="./docker/builder_ubuntu/Dockerfile"
     docker_build
     docker_run "make install-deps dist rpm deb"
 }
 
 release_windows() {
-    DOCKERFILE="./docker/builder/Dockerfile"
+    DOCKERFILE="./docker/builder_ubuntu/Dockerfile"
     docker_build
     docker_run \
 	"make install-deps && GOOS=windows CC=x86_64-w64-mingw32-gcc make dist"
 }
-release-arm() {
-    DOCKERFILE="./docker/builder/Dockerfile"
-    docker_build
-    docker_run \
-	"make install-deps && GOARCH=arm64 GOARM=6 CC=aarch64-linux-gnu-gcc make dist || exit 1"
+
+release_arm() {
+   # $1 : GOARM
+    DOCKERFILE="./docker/builder_ubuntu/Dockerfile"
+    # docker_build
+    # shellcheck disable=SC1073
+    if [[  "$1" == "" ]]; then
+      docker_run 	"make install-deps && GOARCH=arm GOARM=5 CC=arm-linux-gnueabi-gcc make dist || exit 1"
+    else
+      docker_run 	"make install-deps && GOARCH=arm GOARM=$1 CC=arm-linux-gnueabi-gcc make dist || exit 1"
+    fi
 }
 
+release_arm_64() {
+   # $1 : GOARM
+    DOCKERFILE="./docker/builder_ubuntu/Dockerfile"
+    # docker_build
+    if [[  "$1" == "" ]]; then
+      docker_run 	"make install-deps && GOARCH=arm GOARM=5 CC=arm-linux-gnueabi-gcc make dist || exit 1"
+    else
+      docker_run	"make install-deps && GOARCH=arm64 GOARM=$1 CC=aarch64-linux-gnu-gcc make dist || exit 1"
+    fi
+
+}
 release_macos() {
     IMAGE="evebox/builder:macos"
     DOCKERFILE="./docker/builder-macos/Dockerfile"
@@ -84,7 +101,11 @@ case "$1" in
 	;;
 
     release-arm)
-	release_arm
+	release_arm "$2"
+	;;
+
+    release-arm-64)
+	release_arm_64 "$2"
 	;;
 
     release-macos)
@@ -118,7 +139,8 @@ Commands:
     release            Build x86_64 Linux release - zip/deb/rpm.
     release-windows    Build x86_64 Windows release zip.
     release-macos      Build x86_64 MacOS release zip.
-    release-arm        Build 64 ARM release zip.
+    release-arm        Build 32 bit ARM release zip.
+    release-arm-64     Build 64 bit ARM release zip.
 EOF
 	fi
 	;;

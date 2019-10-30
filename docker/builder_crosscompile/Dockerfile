@@ -4,6 +4,14 @@ RUN yum -y install epel-release && \
     yum -y install \
     	make \
 	git \
+	libstdc++ \ 
+	libgcc \
+	glibc \
+	glibc-devel \
+	libgcc.i686 \
+	glibc-devel.i686 \
+	libstdc++-devel.i686 \
+	ncurses-devel.i686 \
 	gcc \
 	gcc-c++ \
 	zip \
@@ -12,7 +20,18 @@ RUN yum -y install epel-release && \
 	which \
 	mingw64-gcc \
 	clang \
-	patch
+	patch \
+	binutils-aarch64-linux-gnu \
+	cross-gcc-common \
+	glibc-aarch64-linux-gnu \
+	libmpc \
+	zlib \
+	gmp \
+	mpfr \
+	gcc-aarch64-linux-gnu \
+	gcc-arm-linux-gnu \
+	gcc-c++-arm-linux-gnu \
+	arm-none-eabi-gcc
 
 # Install Ruby from SCL, and fpm.
 RUN yum -y install \
@@ -22,7 +41,7 @@ RUN yum -y install \
     yum -y install rh-ruby23 rh-ruby23-ruby-devel
 RUN . /opt/rh/rh-ruby23/enable && gem install --bindir=/usr/local/bin fpm
 
-ENV GO_V 1.11.4
+ENV GO_V 1.13.1
 RUN cd /usr/local && \
     curl -o - -L https://dl.google.com/go/go${GO_V}.linux-amd64.tar.gz | \
         tar zxf -

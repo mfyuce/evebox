@@ -21,6 +21,7 @@ HOST_DIST :=	$(HOST_GOOS)/$(HOST_GOARCH)
 
 GOOS ?=		$(shell go env GOOS)
 GOARCH ?=	$(shell go env GOARCH)
+GOARM ?=	$(shell go env GOARM)
 DIST :=		$(GOOS)/$(GOARCH)
 
 ifeq ($(HOST_DIST),$(DIST))
@@ -79,6 +80,7 @@ gofmt:
 
 dist: GOARCH ?= $(shell go env GOARCH)
 dist: GOOS ?= $(shell go env GOOS)
+dist: GOARM ?= $(shell go env GOARM)
 dist: DISTARCH := $(GOARCH)
 ifeq ($(GOARCH),amd64)
 dist: DISTARCH := x64
@@ -89,16 +91,26 @@ endif
 ifneq ($(VERSION_SUFFIX),)
 dist: VERSION := latest
 endif
-dist: DISTNAME ?= ${APP}$(DIST_SUFFIX)-${VERSION}-${GOOS}-${DISTARCH}
+dist: DISTNAME ?= ${APP}$(DIST_SUFFIX)-${VERSION}-${GOOS}-${DISTARCH}${GOARM}
 dist: LDFLAGS += -s
 dist: CGO_ENABLED ?= $(CGO_ENABLED)
 ifeq ($(GOOS),windows)
 dist: APP_EXT := .exe
 endif
+
+ifeq ($(GOARCH),arm64)
+GOARM := $(if $(GOARM),$(GOARM),5)
+dist: APP_CC := GOARM=${GOARM} CC=aarch64-linux-gnu-gcc
+endif
+ifeq ($(GOARCH),arm)
+GOARM := $(if $(GOARM),$(GOARM),5)
+dist: APP_CC := GOARM=${GOARM} CC=arm-linux-gnueabi-gcc
+endif
 dist: public
 	@echo "Building EveBox rev $(BUILD_REV)."
 	$(GOPATH)/bin/packr -z -i resources
 	CGO_ENABLED=$(CGO_ENABLED) GOARCH=$(GOARCH) GOOS=$(GOOS) \
+		${APP_CC} \
 		go build -tags "$(TAGS)" -ldflags "$(LDFLAGS)" \
 		-o dist/$(DISTNAME)/${APP}${APP_EXT} cmd/evebox.go
 	cp agent.yaml.example dist/$(DISTNAME)

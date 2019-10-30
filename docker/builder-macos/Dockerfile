@@ -32,9 +32,9 @@ RUN groupadd --gid 5000 builder
 RUN useradd --uid 5000 --gid 5000 --password "" --groups wheel builder
 RUN echo "builder ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/builder
 
-COPY /docker/builder-macos/install-osxcross.sh /
+COPY docker/builder-macos/install-osxcross.sh /
 RUN /install-osxcross.sh
 
-COPY /docker/builder-macos/docker-entrypoint.sh /
+COPY docker/builder-macos/docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
 

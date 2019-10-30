@@ -18,13 +18,18 @@ release:
 
     ./docker.sh release
     ./docker.sh release-windows
-    ./docker.sh release-arm
+    ./docker.sh release-arm 5
+    ./docker.sh release-arm 6
+    ./docker.sh release-arm 7
+    ./docker.sh release-arm-64 5
+    ./docker.sh release-arm-64 6
+    ./docker.sh release-arm-64 7
 
-    docker pull ${CONTAINER_NAME}:macos || true
-    export CACHE_FROM="--cache-from ${CONTAINER_NAME}:macos"
-    ./docker.sh release-macos
-    docker tag evebox/builder:macos ${CONTAINER_NAME}:macos
-    docker push ${CONTAINER_NAME}:macos
+    #    docker pull ${CONTAINER_NAME}:macos || true
+    #    export CACHE_FROM="--cache-from ${CONTAINER_NAME}:macos"
+    #    ./docker.sh release-macos
+    #    docker tag evebox/builder:macos ${CONTAINER_NAME}:macos
+    #    docker push ${CONTAINER_NAME}:macos
 
     tar zcvf resources-public.tar.gz ./resources/public
 
