@@ -58,7 +58,23 @@ jobs:
         with:
           name: armv7-linux
           path: target/armv7-unknown-linux-musleabihf/release/evebox
-      
+
+
+  arm6:
+    name: Arm 6
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
+      - run: echo "::add-path::$HOME/.cargo/bin"
+      - run: cargo install cross
+      - run: ./docker.sh webapp
+      - run: cross build --release --target arm-unknown-linux-gnueabihf
+      - uses: actions/upload-artifact@v2
+        with:
+          name: armv6-linux
+          path: target/arm-unknown-linux-gnueabihf/release/evebox
+
   windows:
     name: Windows
     runs-on: ubuntu-latest
