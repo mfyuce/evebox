@@ -67,6 +67,25 @@ build_linux_armv7() {
          ${TAG} make dist
 }
 
+build_linux_armv6() {
+    DOCKERFILE="./docker/builder/Dockerfile.armv6"
+    TAG=${BUILDER_TAG:-"evebox/builder:armv6"}
+    docker build --rm \
+           --cache-from ${TAG} \
+	   -t ${TAG} \
+	   -f ${DOCKERFILE} .
+    docker run ${IT} --rm \
+         -v "$(pwd)/target:/src/target" \
+         -v "$(pwd)/dist:/src/dist" \
+         -v /var/run/docker.sock:/var/run/docker.sock \
+         -w /src \
+         -e REAL_UID="$(id -u)" \
+         -e REAL_GID="$(id -g)" \
+         -e BUILD_REV="${BUILD_REV}" \
+         -e TARGET="arm-unknown-linux-gnueabihf" \
+         -e CARGO="cross" \
+         ${TAG} make dist
+}
 
 build_windows() {
     TAG=${BUILDER_TAG:-"evebox/builder:windows"}
@@ -117,22 +136,33 @@ build_docker() {
            -t ${DOCKER_NAME}:${BRANCH_PREFIX}-x86_64 \
            -f docker/Dockerfile .
 
+
     docker buildx build \
            --build-arg "BUILD_REV=${BUILD_REV}" \
-           --build-arg "SRC=./dist/evebox-latest-linux-arm/evebox" \
+           --build-arg "SRC=./dist/${BRANCH_PREFIX}-build-armv7/evebox-latest-linux-arm/evebox" \
            --load \
            --platform linux/arm/v7 \
            -t ${DOCKER_NAME}:${BRANCH_PREFIX}-armv7 \
            -f docker/Dockerfile .
-}
 
-docker_push() {
-    docker push ${DOCKER_NAME}:${BRANCH_PREFIX}-x86_64
-    docker push ${DOCKER_NAME}:${BRANCH_PREFIX}-armv7
-    docker manifest create -a ${DOCKER_NAME}:${BRANCH_PREFIX} \
-           ${DOCKER_NAME}:${BRANCH_PREFIX}-x86_64 \
-           ${DOCKER_NAME}:${BRANCH_PREFIX}-armv7
-    docker manifest push --purge ${DOCKER_NAME}:${BRANCH_PREFIX}
+    docker buildx build \
+           --build-arg "BUILD_REV=${BUILD_REV}" \
+           --build-arg "SRC=./dist/${BRANCH_PREFIX}-build-armv6/evebox-latest-linux-arm/evebox" \
+           --load \
+           --platform linux/arm/v6 \
+           -t ${DOCKER_NAME}:${BRANCH_PREFIX}-armv6 \
+           -f docker/Dockerfile .
+  }
+
+  docker_push() {
+      docker push ${DOCKER_NAME}:${BRANCH_PREFIX}-x86_64
+      docker push ${DOCKER_NAME}:${BRANCH_PREFIX}-armv7
+      docker push ${DOCKER_NAME}:${BRANCH_PREFIX}-armv6
+      docker manifest create -a ${DOCKER_NAME}:${BRANCH_PREFIX} \
+             ${DOCKER_NAME}:${BRANCH_PREFIX}-x86_64 \
+             ${DOCKER_NAME}:${BRANCH_PREFIX}-armv7\
+             ${DOCKER_NAME}:${BRANCH_PREFIX}-armv6
+      docker manifest push --purge ${DOCKER_NAME}:${BRANCH_PREFIX}
 }
 
 build_all() {
@@ -142,6 +172,8 @@ build_all() {
     ./docker.sh release-linux
     ./docker.sh release-windows
     ./docker.sh release-macos
+    ./docker.sh release-armv7
+    ./docker.sh release-armv6
 }
 
 push() {
@@ -170,8 +202,12 @@ case "$1" in
         build_linux
         ;;
 
-    linux-arm)
+    linux-armv7)
         build_linux_armv7
+        ;;
+
+    linux-armv6)
+        build_linux_armv6
         ;;
 
     windows)
@@ -195,6 +231,7 @@ case "$1" in
         build_webapp
         build_linux
         build_linux_armv7
+        build_linux_armv6
         build_windows
         build_macos
         build_docker
@@ -206,7 +243,8 @@ usage: $0 <command>
 
 Commands:
     release-linux      Build x86_64 Linux release - zip/deb/rpm.
-    release-arm7       Build arm7 Linux Release (RPi) - zip
+    release-armv7       Build armv7 Linux Release (RPi) - zip
+    release-armv6      Build armv6 Linux Release (RPi) - zip
     all
 EOF
         exit 1
